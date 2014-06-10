@@ -36,6 +36,9 @@ if node['postfix']['relay_ses']
   file '/etc/postfix/sasl_passwd' do
     content "#{node['postfix']['ses']['hostname']}:#{node['postfix']['ses']['port']} #{node['postfix']['ses']['access_key']}:#{node['postfix']['ses']['secret_access_key']}"
     notifies  :restart, 'bash[postmap-sasl]', :immediately
+    owner 'root'
+    group 'root'
+    mode 0400
   end
 end
 
