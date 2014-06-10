@@ -26,18 +26,17 @@ template '/etc/postfix/main.cf' do
 end
 
 if node['postfix']['relay_ses']
-  bash 'sasl' do
-    endpoint = "#{node['postfix']['ses']['hostname']}:#{node['postfix']['ses']['port']}"
-    credential = "#{node['postfix']['ses']['access_key']}:#{node['postfix']['ses']['secret_access_key']}"
+  bash 'postmap-sasl' do
     code <<-EOL
-      echo "#{endpoint} #{credential}" > /etc/postfix/sasl_passwd;
       postmap hash:/etc/postfix/sasl_passwd;
-      rm /etc/postfix/sasl_passwd
     EOL
-    not_if { File.exists?('/etc/postfix/sasl_passwd.db') }
+    action :nothing
     notifies  :restart, 'service[postfix]'
   end
-
+  file '/etc/postfix/sasl_passwd' do
+    content "#{node['postfix']['ses']['hostname']}:#{node['postfix']['ses']['port']} #{node['postfix']['ses']['access_key']}:#{node['postfix']['ses']['secret_access_key']}"
+    notifies  :restart, 'bash[postmap-sasl]', :immediately
+  end
 end
 
 service 'postfix' do
